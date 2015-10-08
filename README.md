@@ -1,6 +1,6 @@
 HYSTRIx iMProved
 ===================
-[Hystrix](https://github.com/Netflix/Hystrix) is an innovative project from Netflix that aims to make interactions with external dependencies robust. It forces one to address important questions such as:
+[Hystrix](https://github.com/Netflix/Hystrix) is an innovative project from Netflix that aims to make interactions with external dependencies robust. It forces one to answer important questions such as:
 
 * *What do I do if I time out before hearing from the remote system?*
 * *What do I do if the remote system returns an error?*
