@@ -8,7 +8,8 @@ HYSTRIx iMProved
 * *If I cannot use the remote system, should I retry my request?*
    * *How long should I wait before retrying?* 
 
-Hystrimp provides a Go implementation of these ideas.
+Hystrimp provides a Go implementation of these ideas:
+
 ![Hystrix Flow](flow.png)
 
 Hystrimp improves upon [hystrix-go](https://github.com/afex/hystrix-go) in the following ways:
