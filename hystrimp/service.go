@@ -74,7 +74,7 @@ import (
 	"sync"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 )
 
 const (
@@ -107,6 +107,8 @@ var (
 		ServiceCB: WarnHandler,
 		CommandCB: WarnHandler,
 	}
+
+	log = logrus.New()
 )
 
 // Runs when file is first loaded
@@ -397,17 +399,17 @@ func (h *service) RunAsync(name string, command Command, handlers *ErrorHandlers
 func SetLogLevel(level LogLevel) error {
 	switch level {
 	case LevelDebug:
-		log.SetLevel(log.DebugLevel)
+		log.Level = logrus.DebugLevel
 	case LevelInfo:
-		log.SetLevel(log.InfoLevel)
+		log.Level = logrus.InfoLevel
 	case LevelWarn:
-		log.SetLevel(log.WarnLevel)
+		log.Level = logrus.WarnLevel
 	case LevelError:
-		log.SetLevel(log.ErrorLevel)
+		log.Level = logrus.ErrorLevel
 	case LevelFatal:
-		log.SetLevel(log.FatalLevel)
+		log.Level = logrus.FatalLevel
 	case LevelPanic:
-		log.SetLevel(log.PanicLevel)
+		log.Level = logrus.PanicLevel
 	default:
 		fmt.Errorf("Unknown log level %v", level)
 	}
