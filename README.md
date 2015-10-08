@@ -14,7 +14,7 @@ Hystrimp provides a Go implementation of these ideas:
 
 ![Hystrix Flow](flow.png)
 
-Hystrimp improves upon [hystrix-go](https://github.com/afex/hystrix-go) in the following ways:
+It improves upon [hystrix-go](https://github.com/afex/hystrix-go) (similar project) in the following ways:
 
 * Support for automatic retry of command with backoff upon remote errors or timeouts.
 * Remote commands are grouped into logical services
