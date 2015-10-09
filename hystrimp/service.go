@@ -101,7 +101,7 @@ var (
 		return err
 	}
 
-	// WarnHandlers is a set of error handlers that log warnings for each kind of error
+	// WarnHandlers is a set of error handlers which log warnings for each kind of error
 	WarnHandlers = &ErrorHandlers{
 		Local:     WarnHandler,
 		Timeout:   WarnHandler,
