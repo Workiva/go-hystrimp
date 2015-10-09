@@ -23,4 +23,31 @@ It improves upon [hystrix-go](https://github.com/afex/hystrix-go) (similar proje
 * Better ergonomics/interface
 * Simpler implementation
 
-Ideas for improvement and new features are welcome! Please use GitHub's issue tracker.
+# Installing
+1. Install [Go](https://golang.org/doc/install)
+2. Install Godep (```go get github.com/tools/godep```)
+2. Run ```godep get github.com/Workiva/go-hystrimp/...```
+
+# Updating
+When new code is available on master, you can update with ```go get -u github.com/Workiva/go-hystrimp/...```
+
+# Testing
+To run unit tests, do
+```
+cd $GOPATH/src/github.com/Workiva/go-hystrimp
+godep go test ./...
+```
+
+# Contributing
+To contribute, do the following:
+
+1. Create a feature branch from master
+2. Implement your contributions
+3. Ensure unit test coverage
+4. Ensure that you've complied with [these guidelines](https://github.com/golang/go/wiki/CodeReviewComments)
+5. [gofmt](https://golang.org/cmd/gofmt/) your code
+6. Commit with good commit messages
+7. Create PR back to master
+
+# Reporting Bugs and Feature Requests
+Bug reports and ideas for improvement are welcome! Please use GitHub's issue tracker.
