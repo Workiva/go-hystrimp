@@ -14,63 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/* USAGE EXAMPLE
-// Create a configured Hystrimp service
-fooService := hystrimp.NewService(&ServiceConfiguration{
-	CommonConfiguration: {
-		Name: "FooService", // Name of the remote service wrapped with Hystrimp
-		MaxConcurrentCommands: 10, // Allow at most 10 threads to use the service at once
-		CBSleepWindow: time.Minute, // Circuit breaker stays tripped for 1 minute
-		CBRequestVolumeThreshold: 10, // Don't trip the breaker until at least this many requests are made
-		CBErrorPercentThreshold: 10, // Trip the breaker if more than 10% of the commands have failed since the last time the breaker tripped
-	}
-})
-
-// Register a command to the Hystrimp service. Can also be done as part of configuring the service.
-fooService.RegisterCommand(&CommandConfiguration{
-	Name: "DoStuff", // Name of the command
-	MaxConcurrentCommands: 1, // Allow at most 1 thread to use the command at once
-	CBSleepWindow: time.Minute, // Circuit breaker stays tripped for 1 minute
-	CBRequestVolumeThreshold: 10, // Don't trip the breaker until at least this many requests are made
-	CBErrorPercentThreshold: 10, // Trip the breaker if more than 10% of the commands have failed since the last time the breaker tripped
-	Timeout: time.Second, // Raise a timeout error if the command takes more than 1s to execute
-	Retries: 100, // Retry the command up to 100 times when unhandled timeout or remote errors occur
-	RetryInitialWait: time.Millisecond, // First wait will be 1ms
-	RetryStrategy: RetryStrategyExponentialBackoff, // Back off expontentially with subsequent failures between retries
-	RetryBackoffCeiling: 10 * time.Second, // Cap exponential backoff at 1s
-})
-
-// Make a fully-specified Hystrimp call. Any error that is ultimately unhandled will be returned.
-err := fooService.Run("DoStuff", func() (localErr, remoteErr error){
-	// This is the wrapped call to FooService.DoStuff
-	// If errors are encountered, assign blame either to the local or remote
-}, &ErrorHandlers{
-	Local: func(err error) error { ... },
-	Remote:  func(err error) error { ... },
-	Timeout:  func(err error) error { ... },
-	CommandCB:  func(err error) error { ... },
-	ServiceCB:   func(err error) error { ... },
-})
-
-// Errors are nicely-typed so you can deal with them by kind
-switch typedErr := err.(type) {
-	case *LocalError:
-	case *RemoteError:
-	case *TimeoutError:
-	case *HandlerError:
-	case *ServiceCircuitBreakerOpenError:
-	case *CommandCircuitBreakerOpenError:
-	default:
-		// Should never be reachable
-}
-
-// Make a lazy man's Hystrimp call with no error handlers given.
-err = fooService.Run("DoStuff", func() (localErr, remoteErr error){
-	// This is the wrapped call to FooService.DoStuff
-	// If errors are encountered, assign blame either to the local or remote
-}, nil)
-*/
-
 // Package hystrimp contains a Go implementation of Netflix's Hystrix project.
 package hystrimp
 
