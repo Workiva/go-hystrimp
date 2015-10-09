@@ -30,21 +30,12 @@ fooService.RegisterCommand(&CommandConfiguration{
 err := fooService.Run("DoStuff", func() (localErr, remoteErr error){
 	// This is the wrapped call to FooService.DoStuff
 	// If errors are encountered, assign blame either to the local or remote
-}, func(err error) error{
-	// Handle local errors returned by the command
-	// Return nil if handled, else return any new problem
-}, func(err error) error{
-	// Handle timeout of the command
-	// Return nil if handled, else return any new problem
-}, func(err error) error{
-	// Handle remote errors from the command
-	// Return nil if handled, else return any new problem
-}, func(err error) error{
-	// Handle the service circuit breaker being tripped when the command was attempted
-	// Return nil if handled, else return any new problem
-}, func(err error) error{
-	// Handle the command circuit breaker being tripped when the command was attempted
-	// Return nil if handled, else return any new problem
+}, &ErrorHandlers{
+	Local: func(err error) error { ... },
+	Remote:  func(err error) error { ... },
+	Timeout:  func(err error) error { ... },
+	CommandCB:  func(err error) error { ... },
+	ServiceCB:   func(err error) error { ... },
 })
 
 // Errors are nicely-typed so you can deal with them by kind
@@ -63,7 +54,7 @@ switch typedErr := err.(type) {
 err = fooService.Run("DoStuff", func() (localErr, remoteErr error){
 	// This is the wrapped call to FooService.DoStuff
 	// If errors are encountered, assign blame either to the local or remote
-}, nil, nil, nil, nil, nil)
+}, nil)
 */
 
 package hystrimp
