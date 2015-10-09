@@ -184,6 +184,7 @@ type CommonConfiguration struct {
 	CBSleepWindow time.Duration
 
 	// CBRequestVolumeThreshold defines the minimum number of requests needed before a circuit can be tripped
+	CBRequestVolumeThreshold int
 
 	// CBErrorPercentThreshold defines a failure percentage for requests that will cause the circuit breaker to be tripped.
 	CBErrorPercentThreshold int
