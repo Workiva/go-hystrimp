@@ -123,7 +123,7 @@ func init() {
 // LogLevel defines the verbosity of logging
 type LogLevel uint8
 
-// RetryWaitStrategy is a methodsof waiting between retrying commands after remote failures
+// RetryWaitStrategy is a method of waiting between retrying commands after remote failures
 type RetryWaitStrategy uint8
 
 // Service is a wrapper around a remote service that has Hystrimp commands that can be run
