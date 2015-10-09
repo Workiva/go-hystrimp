@@ -126,7 +126,7 @@ type LogLevel uint8
 // RetryWaitStrategy is a method of waiting between retrying commands after remote failures
 type RetryWaitStrategy uint8
 
-// Service is a wrapper around a remote service that has Hystrimp commands that can be run
+// Service sends commands to a wrapped remote service
 type Service interface {
 	// RegisterCommand registers a command so that it can be run
 	RegisterCommand(config *CommandConfiguration)
