@@ -221,7 +221,7 @@ type Command func() (localError, remoteError error)
 // Returns nil if the handler was able to handle the error. May return new errors that occur within the handler.
 type ErrorHandler func(err error) error
 
-// ErrorHandlers defines handlers for each kind of error that may be encountered while attempting to run a command
+// ErrorHandlers defines a set of error handlers for use while attempting to run a command
 type ErrorHandlers struct {
 	// Local handles errors that occur locally within the command
 	Local ErrorHandler
