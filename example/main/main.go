@@ -40,7 +40,7 @@ func main() {
 	fmt.Println("Using the Remote Service with a Hystrimp client (✓=success, x=failure)...")
 	useClient(example.NewHystrimpClient(remote))
 
-	fmt.Println("\n")
+	fmt.Println()
 
 	fmt.Println("Using the Remote Service with a naive client (✓=success, x=failure)...")
 	useClient(example.NewNaiveClient(remote))
