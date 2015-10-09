@@ -74,7 +74,7 @@ const (
 	RetryStrategyImmediate RetryWaitStrategy = iota
 	// RetryStrategyFixedDelay retries after a fixed delay
 	RetryStrategyFixedDelay
-	// RetryStrategyExponentialBackoff Retry after an exponentially-growing backoff
+	// RetryStrategyExponentialBackoff retries after an exponentially-growing backoff
 	RetryStrategyExponentialBackoff
 
 	// LevelDebug logs debug events and above
