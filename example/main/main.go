@@ -24,8 +24,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Workiva/go-hystrimp/example"
 	"github.com/Workiva/go-hystrimp/hystrimp"
-	"github.com/Workiva/go-hystrimp/hystrimp/example"
 )
 
 func main() {

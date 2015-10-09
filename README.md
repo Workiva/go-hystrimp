@@ -39,7 +39,7 @@ godep go test ./...
 ```
 # Running the Example
 ```
-godep go build -o hystrimp-example -tags example ./hystrimp/example/main
+godep go build -o hystrimp-example -tags example ./example/main
 ./hystrimp-example
 ```
 
