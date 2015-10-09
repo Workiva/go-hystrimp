@@ -57,6 +57,7 @@ err = fooService.Run("DoStuff", func() (localErr, remoteErr error){
 }, nil)
 */
 
+// Package hystrimp contains a Go implementation of Netflix's Hystrix project
 package hystrimp
 
 import (
@@ -69,28 +70,38 @@ import (
 )
 
 const (
-	RetryStrategyImmediate          RetryWaitStrategy = iota // Retry the command immediately
-	RetryStrategyFixedDelay                                  // Retry the command after a fixed delay
-	RetryStrategyExponentialBackoff                          // Retry the command after a backoff that gets exponentially-larger
+	// RetryStrategyImmediate retries immediately
+	RetryStrategyImmediate RetryWaitStrategy = iota
+	// RetryStrategyFixedDelay retries after a fixed delay
+	RetryStrategyFixedDelay
+	// RetryStrategyExponentialBackoff Retry after an exponentially-growing backoff
+	RetryStrategyExponentialBackoff
 
+	// LevelDebug logs debug events and above
 	LevelDebug LogLevel = iota
+	// LevelInfo logs only info events and above
 	LevelInfo
+	// LevelWarn logs only warning events and above
 	LevelWarn
+	// LevelError logs only error events and above
 	LevelError
+	// LevelFatal logs only fatal events and above
 	LevelFatal
+	// LevelPanic logs only panic events
 	LevelPanic
 
+	// Factor by which an exponential backoff grows each time
 	exponentialBackoffFactor = 2
 )
 
 var (
-	// An error "handler" that warns about errors but does not handle them
+	// WarnHandler "handles" errors by logging them as warnings and returning them (doesn't really handle them)
 	WarnHandler = func(err error) error {
 		log.Warnln(err)
 		return err
 	}
 
-	// A set of warn handlers
+	// WarnHandlers is a set of error handlers that log warnings for each kind of error
 	WarnHandlers = &ErrorHandlers{
 		Local:     WarnHandler,
 		Timeout:   WarnHandler,
@@ -99,84 +110,86 @@ var (
 		CommandCB: WarnHandler,
 	}
 
+	// Non-default Logger, used for logging
 	log = logrus.New()
 )
 
 // Runs when file is first loaded
 func init() {
-	// Default log level to warn
+	// Default log level is warn
 	SetLogLevel(LevelWarn)
 }
 
-// Verbosity of logging
+// LogLevel defines the verbosity of logging
 type LogLevel uint8
 
-// Method of waiting between retrying commands after remote failures
+// RetryWaitStrategy is a methodsof waiting between retrying commands after remote failures
 type RetryWaitStrategy uint8
 
-// A remote service with commands that can be run
+// Service is a wrapper around a remote service that has Hystrimp commands that can be run
 type Service interface {
-	// Register a command so that it can be run
+	// RegisterCommand registers a command so that it can be run
 	RegisterCommand(config *CommandConfiguration)
 
-	// Runs the given command.
+	// Run executes the given registered command synchronously.
 	// If error handlers are provided, invokes the appropriate error handler.
 	// Returns any unhandled error (one of the error types below), else nil
 	Run(name string, command Command, handlers *ErrorHandlers) error
 
-	// Asynchronously run the given command on the given remote service.
+	// RunAsync executes the given registered command asynchronously.
 	// If error handlers are provided, invoke the appropriate error handler when errors are encountered.
 	// Returns any unhandled error (one of the error types below), else nil
 	RunAsync(name string, command Command, handlers *ErrorHandlers) chan<- error
 }
 
-// Options with which to register/execute remote commands
+// CommandConfiguration defines options with which commands should be run
 type CommandConfiguration struct {
+	// CommonConfiguration defines options common to both commands and services
 	CommonConfiguration
 
-	// How long to wait for the command to run before raising a TimeoutError
+	// Timeout defines how long to wait for the command to finish before raising a TimeoutError
 	Timeout time.Duration
 
-	// Maximum number of retries when unhandled errors are encountered
+	// Retries defines the maximum number of retries when an unhandled TimeoutError or RemoteError is encountered
 	Retries int
 
-	// How to wait between retries
+	// RetryStrategy defines how to wait between retries
 	RetryStrategy RetryWaitStrategy
 
-	// Amount of time for the first retry wait (applies to fixed and backoff strategies)
+	// RetryInitialWait defines the initial wait between retries
 	RetryInitialWait time.Duration
 
-	// Maximum amount of time between retries
+	// RetryBackoffCeiling defines the maximum amount of time between retries, even with exponential backoff
 	RetryBackoffCeiling time.Duration
 }
 
-// Options to configure a service
+// ServiceConfiguration defines options to configure a service
 type ServiceConfiguration struct {
+	// CommonConfiguration defines options common to both commands and services
 	CommonConfiguration
 
-	// Commands to register at the time of service construction
+	// CommandPreregistrations is a convenience for pre-registering commands at the time of service creation
 	CommandPreregistrations []*CommandConfiguration
 }
 
-// Common configuration options that apply to both commands and services
+// CommonConfiguration defines options that apply to both commands and services
 type CommonConfiguration struct {
 	// Name of the service
 	Name string
 
-	// Maximum number of parallel instances of any commandsthat may run at once
+	// MaxConcurrentCommands bounds the number of parallel instances of the command that may run at once
 	MaxConcurrentCommands int
 
-	// How long to wait after a circuit opens before testing for recovery
+	// CBSleepWindow defines how long to wait after a circuit breaker opens before testing for recovery
 	CBSleepWindow time.Duration
 
-	// The minimum number of requests needed before a circuit can be tripped due to health
-	CBRequestVolumeThreshold int
+	// CBRequestVolumeThreshold defines the minimum number of requests needed before a circuit can be tripped
 
-	// Causes circuit to open once the rolling measure of remote errors exceeds this percent of requests
+	// CBErrorPercentThreshold defines a failure percentage for requests that will cause the circuit breaker to be tripped.
 	CBErrorPercentThreshold int
 }
 
-// Creates a new CommonConfiguration with unlimited concurrency, 50% error percent threshold for circuit breaker
+// NewCommonConfiguration constructs a new CommonConfiguration with some reasonable default values
 func NewCommonConfiguration(name string) *CommonConfiguration {
 	return &CommonConfiguration{
 		Name: name,
@@ -187,7 +200,7 @@ func NewCommonConfiguration(name string) *CommonConfiguration {
 	}
 }
 
-// Creates a new CommandConfiguration with unlimited concurrency, 50% error percent threshold for circuit breaker, 10min timeout and no retries.
+// NewCommandConfiguration constructs a new CommandConfiguration with some reasonable default values
 func NewCommandConfiguration(name string) *CommandConfiguration {
 	return &CommandConfiguration{
 		CommonConfiguration: *NewCommonConfiguration(name),
@@ -199,25 +212,30 @@ func NewCommandConfiguration(name string) *CommandConfiguration {
 	}
 }
 
-// A command to a remote service.
-// Errors that are caused locally are returned as localError.
-// Errors that are caused remotely are returned through remoteError
+// Command is a wrapped operation of a remote service.
+// Errors that are encountered locally are returned as localError.
+// Errors that are caused remotely are returned through remoteError.
 type Command func() (localError, remoteError error)
 
-// A handler function to attempt to resolve an error
-// Returns nil if the handler was able to handle the error
+// ErrorHandler handles an error that was encountered while attempting to run a Command.
+// Returns nil if the handler was able to handle the error. May return new errors that occur within the handler.
 type ErrorHandler func(err error) error
 
-// A set of error handlers to be used in running a command
+// ErrorHandlers defines handlers for each kind of error that may be encountered while attempting to run a command
 type ErrorHandlers struct {
-	Local     ErrorHandler // Handles errors that occur locally within the command
-	Timeout   ErrorHandler // Handles the command timing out
-	Remote    ErrorHandler // Handles errors for which the remote service is responsible
-	CommandCB ErrorHandler // Handles the command circuit breaker being open
-	ServiceCB ErrorHandler // Handles the service circuit breaker being open
+	// Local handles errors that occur locally within the command
+	Local ErrorHandler
+	// Timeout handles the command timing out
+	Timeout ErrorHandler
+	// Remote handles errors for which the remote service is responsible
+	Remote ErrorHandler
+	// CommandCB handles the command circuit breaker being open
+	CommandCB ErrorHandler
+	// ServiceCB handles the service circuit breaker being open
+	ServiceCB ErrorHandler
 }
 
-// An error arising due to a remote request timeout
+// TimeoutError arises when command execution times out
 type TimeoutError struct {
 	Elapsed time.Duration // Amount of time after which a timeout was declared
 }
@@ -226,7 +244,7 @@ func (err *TimeoutError) Error() string {
 	return fmt.Sprintf("Timeout after %v", err.Elapsed)
 }
 
-// An error arising because the service's circuit breaker is currently open
+// ServiceCircuitBreakerOpenError arises when the service's circuit breaker is open at the time of running a command
 type ServiceCircuitBreakerOpenError struct {
 	Name string
 }
@@ -235,7 +253,7 @@ func (err *ServiceCircuitBreakerOpenError) Error() string {
 	return fmt.Sprintf("Service %s circuit breaker open", err.Name)
 }
 
-// An error arising because the command's circuit breaker is currently open
+// CommandCircuitBreakerOpenError arises when the command's circuit breaker is open at the time of running a command
 type CommandCircuitBreakerOpenError struct {
 	Name string
 }
@@ -244,7 +262,7 @@ func (err *CommandCircuitBreakerOpenError) Error() string {
 	return fmt.Sprintf("Command %s circuit breaker open", err.Name)
 }
 
-// An error that occurred locally (was *not* the remote's fault)
+// LocalError arises when the command encounters a local error that was not returned by of the remote system
 type LocalError struct {
 	Wrapped error // Wrapped error
 }
@@ -253,7 +271,7 @@ func (err *LocalError) Error() string {
 	return err.Wrapped.Error()
 }
 
-// An error that occurred remotely (*was* the remote's fault)
+// RemoteError arises when the command encounters an error that was returned by the remote system
 type RemoteError struct {
 	Wrapped error // Wrapped error
 }
@@ -262,7 +280,7 @@ func (err *RemoteError) Error() string {
 	return err.Wrapped.Error()
 }
 
-// An error that occurred inside an error handler while it was trying to handle the input error
+// HandlerError arises when a handler attempts unsuccessfully to handle an error
 type HandlerError struct {
 	Input   error // Error that the handler tried to handle
 	Wrapped error // Wrapped error
@@ -272,7 +290,7 @@ func (err *HandlerError) Error() string {
 	return err.Wrapped.Error()
 }
 
-// Constructs a new Service with the provided configuration
+// NewService constructs a new Service with the provided configuration
 func NewService(config *ServiceConfiguration) Service {
 	h := &service{
 		config:  newCommonConfiguration(config.CommonConfiguration),
@@ -288,7 +306,7 @@ func NewService(config *ServiceConfiguration) Service {
 	return h
 }
 
-// Configure options for the given command.
+// RegisterCommand registers the given command as an operation of this service.
 // Required before the command is used.
 // Commands can also be registered inside the ServiceConfiguration
 func (h *service) RegisterCommand(config *CommandConfiguration) {
@@ -300,7 +318,7 @@ func (h *service) RegisterCommand(config *CommandConfiguration) {
 }
 
 // Run the given command on the given remote service.
-// If error handlers are provided, invokes the appropriate error handler.
+// If error handlers are provided, invokes the appropriate error handler when an error is encountered.
 // Returns any unhandled error as one of the defined error types
 func (h *service) Run(name string, command Command, handlers *ErrorHandlers) error {
 	log.WithFields(logrus.Fields{
@@ -379,8 +397,8 @@ func (h *service) Run(name string, command Command, handlers *ErrorHandlers) err
 	return unhandled
 }
 
-// Asynchronously run the given command on the given remote service.
-// If error handlers are provided, invoke the appropriate error handler when errors are encountered.
+// RunAsync runs the given command on the given remote servic asynchronously.
+// If error handlers are provided, invokes the appropriate error handler when an error is encountered.
 // Returns a channel on which any unhandled error (as one of the defined error types) is sent, else nil
 func (h *service) RunAsync(name string, command Command, handlers *ErrorHandlers) chan<- error {
 	log.WithFields(logrus.Fields{
@@ -397,7 +415,7 @@ func (h *service) RunAsync(name string, command Command, handlers *ErrorHandlers
 	return errChan
 }
 
-// Set verbosity of logging to the given level
+// SetLogLevel configures the verbosity of logging to the given level
 func SetLogLevel(level LogLevel) error {
 	switch level {
 	case LevelDebug:
