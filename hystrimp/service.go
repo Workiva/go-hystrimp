@@ -262,7 +262,7 @@ func (err *CommandCircuitBreakerOpenError) Error() string {
 	return fmt.Sprintf("Command %s circuit breaker open", err.Name)
 }
 
-// LocalError arises when the command encounters a local error that was not returned by of the remote system
+// LocalError arises when the command encounters a local error that was not returned by the remote system
 type LocalError struct {
 	Wrapped error // Wrapped error
 }
