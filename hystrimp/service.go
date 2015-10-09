@@ -398,7 +398,7 @@ func (h *service) Run(name string, command Command, handlers *ErrorHandlers) err
 	return unhandled
 }
 
-// RunAsync runs the given command on the given remote servic asynchronously.
+// RunAsync runs the given command on the given remote service asynchronously.
 // If error handlers are provided, invokes the appropriate error handler when an error is encountered.
 // Returns a channel on which any unhandled error (as one of the defined error types) is sent, else nil
 func (h *service) RunAsync(name string, command Command, handlers *ErrorHandlers) chan<- error {
