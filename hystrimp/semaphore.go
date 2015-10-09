@@ -1,7 +1,5 @@
 package hystrimp
 
-import log "github.com/Sirupsen/logrus"
-
 type semaphore chan struct{}
 
 func newSemaphore(size int) semaphore {

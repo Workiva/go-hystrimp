@@ -74,7 +74,7 @@ import (
 	"sync"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 )
 
 const (
@@ -107,6 +107,8 @@ var (
 		ServiceCB: WarnHandler,
 		CommandCB: WarnHandler,
 	}
+
+	log = logrus.New()
 )
 
 // Runs when file is first loaded
@@ -300,7 +302,7 @@ func NewService(config *ServiceConfiguration) Service {
 // Commands can also be registered inside the ServiceConfiguration
 func (h *service) RegisterCommand(config *CommandConfiguration) {
 	if _, alreadyConfigured := h.configs[config.Name]; alreadyConfigured {
-		log.Warningf("Already had configuration for command %s. Reconfiguring as requested.", config.Name)
+		log.WithField("command name", config.Name).Warningln("Already had configuration for command. Reconfiguring as requested.")
 	}
 
 	h.configs[config.Name] = newCommandConfiguration(config)
@@ -310,7 +312,13 @@ func (h *service) RegisterCommand(config *CommandConfiguration) {
 // If error handlers are provided, invokes the appropriate error handler.
 // Returns any unhandled error as one of the defined error types
 func (h *service) Run(name string, command Command, handlers *ErrorHandlers) error {
-	log.Debugf("Service(%s).Run(%s, %v, %v)", h.config.name, name, command, handlers)
+	log.WithFields(logrus.Fields{
+		"service name": h.config.name,
+		"command name": name,
+		"command":      command,
+		"handlers":     handlers,
+	}).Debugln("Running command")
+
 	if handlers == nil {
 		handlers = &ErrorHandlers{}
 	}
@@ -384,7 +392,12 @@ func (h *service) Run(name string, command Command, handlers *ErrorHandlers) err
 // If error handlers are provided, invoke the appropriate error handler when errors are encountered.
 // Returns a channel on which any unhandled error (as one of the defined error types) is sent, else nil
 func (h *service) RunAsync(name string, command Command, handlers *ErrorHandlers) chan<- error {
-	log.Debugf("Service(%s).RunAsync(%s, %v, %v)", h.config.name, name, command, handlers)
+	log.WithFields(logrus.Fields{
+		"service name": h.config.name,
+		"command name": name,
+		"command":      command,
+		"handlers":     handlers,
+	}).Debugln("Running command asynchronously")
 
 	errChan := make(chan error, 1)
 	go func() {
@@ -397,17 +410,17 @@ func (h *service) RunAsync(name string, command Command, handlers *ErrorHandlers
 func SetLogLevel(level LogLevel) error {
 	switch level {
 	case LevelDebug:
-		log.SetLevel(log.DebugLevel)
+		log.Level = logrus.DebugLevel
 	case LevelInfo:
-		log.SetLevel(log.InfoLevel)
+		log.Level = logrus.InfoLevel
 	case LevelWarn:
-		log.SetLevel(log.WarnLevel)
+		log.Level = logrus.WarnLevel
 	case LevelError:
-		log.SetLevel(log.ErrorLevel)
+		log.Level = logrus.ErrorLevel
 	case LevelFatal:
-		log.SetLevel(log.FatalLevel)
+		log.Level = logrus.FatalLevel
 	case LevelPanic:
-		log.SetLevel(log.PanicLevel)
+		log.Level = logrus.PanicLevel
 	default:
 		fmt.Errorf("Unknown log level %v", level)
 	}
@@ -534,7 +547,7 @@ func backoff(config *commandConfiguration, currentWait time.Duration) time.Durat
 
 // Apply the handler to the error, returning the result
 func runHandler(handler ErrorHandler, toHandle error) error {
-	log.Debugf("Handling error: %v", toHandle)
+	log.WithField("error", toHandle).Debugln("Handling error")
 
 	if handler == nil {
 		log.Debugln("No handler available")
@@ -542,7 +555,7 @@ func runHandler(handler ErrorHandler, toHandle error) error {
 	}
 
 	if err := handler(toHandle); err != nil {
-		log.Debugf("Unable to handle error because: %v", err)
+		log.WithField("error", err).Debugln("Handler returned error.")
 		return &HandlerError{Input: toHandle, Wrapped: err}
 	}
 
@@ -570,7 +583,10 @@ func possiblyTripBreaker(config *commonConfiguration, success, failure int) {
 	// Trip the service breaker if enough results recorded and failure percentage too high
 	if config.successes+config.failures >= config.cBRequestVolumeThreshold &&
 		100*config.failures/(config.successes+config.failures) >= config.cBErrorPercentThreshold {
-		log.Infof("Circuit breaker %s tripped! Resetting after %v.", config.name, config.cBSleepWindow)
+		log.WithFields(logrus.Fields{
+			"name":  config.name,
+			"sleep": config.cBSleepWindow,
+		}).Infoln("Circuit breaker tripped!")
 		config.breakerOpen = true
 		go func() {
 			<-time.After(config.cBSleepWindow)
@@ -580,7 +596,7 @@ func possiblyTripBreaker(config *commonConfiguration, success, failure int) {
 			config.failures = 0
 			config.successes = 0
 			config.breakerOpen = false
-			log.Infof("Circuit breaker %s reset.", config.name)
+			log.WithField("name", config.name).Infoln("Circuit breaker reset.")
 			config.breakerLock.Unlock()
 		}()
 	}
