@@ -37,6 +37,11 @@ To run unit tests, do
 cd $GOPATH/src/github.com/Workiva/go-hystrimp
 godep go test ./...
 ```
+# Running the Example
+```
+godep go build -o hystrimp-example -tags example ./example/main
+./hystrimp-example
+```
 
 # Contributing
 To contribute, do the following:
