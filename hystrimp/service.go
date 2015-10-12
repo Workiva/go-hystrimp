@@ -348,19 +348,20 @@ func (h *service) Run(name string, command Command, handlers *ErrorHandlers) err
 		handlers = &ErrorHandlers{}
 	}
 
-	// Respect max parallelism constraint on service
-	h.config.semaphore.down()
-	defer h.config.semaphore.up()
-
-	// Respect max parallelism constraint on command
 	commandConfig := h.configs[name]
-	commandConfig.semaphore.down()
+	retryWait := commandConfig.retryInitialWait
+	var unhandled error
+
+	// Remember to free up constraints on parallelism when this command exits
+	defer h.config.semaphore.up()
 	defer commandConfig.semaphore.up()
 
-	retryWait := commandConfig.retryInitialWait
-
-	var unhandled error
+	// Until we get success, a non-remote error, or run out of retries
 	for i := 0; i <= commandConfig.retries; i++ {
+		// Respect max parallelism constraints on service and command
+		h.config.semaphore.down()
+		commandConfig.semaphore.down()
+
 		// Check the circuit breakers
 		if breakerOpen, err := checkBreakers(h.config, &commandConfig.commonConfiguration, handlers); breakerOpen {
 			return err
@@ -406,8 +407,15 @@ func (h *service) Run(name string, command Command, handlers *ErrorHandlers) err
 			return nil
 		}
 
-		// Execute backoff before retry
-		retryWait = backoff(commandConfig, retryWait)
+		// We're about to retry the command
+		if i < commandConfig.retries {
+			// Free up parallelism constraints so that other commands can run
+			commandConfig.semaphore.up()
+			h.config.semaphore.up()
+
+			// Execute the backoff strategy before retrying
+			retryWait = backoff(commandConfig, retryWait)
+		}
 	}
 
 	return unhandled
