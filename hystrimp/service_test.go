@@ -69,6 +69,18 @@ func TestTimeoutErrorUnhandled(t *testing.T) {
 	assert.NotNil(err)
 	_, ok := err.(*TimeoutError)
 	assert.True(ok)
+
+	err = service.Run(testCommand, func() (error, error) {
+		<-time.After(time.Millisecond)
+		return nil, nil
+	}, &ErrorHandlers{Timeout: func(err error) (bool, error) {
+		return false, nil
+	}})
+
+	// Expect the unhandled error
+	assert.NotNil(err)
+	_, ok = err.(*TimeoutError)
+	assert.True(ok)
 }
 
 // Ensure that timeout errors are handled if handler is provided
@@ -82,9 +94,9 @@ func TestTimeoutErrorHandled(t *testing.T) {
 	err := service.Run(testCommand, func() (error, error) {
 		<-time.After(time.Millisecond)
 		return nil, nil
-	}, &ErrorHandlers{Timeout: func(err error) error {
+	}, &ErrorHandlers{Timeout: func(err error) (bool, error) {
 		handled <- err
-		return nil
+		return true, nil
 	}})
 
 	// Expect the error to have been handled
@@ -109,8 +121,8 @@ func TestTimeoutErrorHandlerError(t *testing.T) {
 	err := service.Run(testCommand, func() (error, error) {
 		<-time.After(time.Millisecond)
 		return nil, nil
-	}, &ErrorHandlers{Timeout: func(err error) error {
-		return handlerError
+	}, &ErrorHandlers{Timeout: func(err error) (bool, error) {
+		return false, handlerError
 	}})
 
 	// Expect the handler to have raised an error
@@ -136,6 +148,18 @@ func TestLocalErrorUnhandled(t *testing.T) {
 	lErr, ok := err.(*LocalError)
 	assert.True(ok)
 	assert.Equal(localError, lErr.Wrapped)
+
+	err = service.Run(testCommand, func() (error, error) {
+		return localError, nil
+	}, &ErrorHandlers{Local: func(err error) (bool, error) {
+		return false, nil
+	}})
+
+	// Expect the unhandled error
+	assert.NotNil(err)
+	lErr, ok = err.(*LocalError)
+	assert.True(ok)
+	assert.Equal(localError, lErr.Wrapped)
 }
 
 // Ensure that local errors are handled if handler is provided
@@ -148,9 +172,9 @@ func TestLocalErrorHandled(t *testing.T) {
 	localError := fmt.Errorf("Local error")
 	err := service.Run(testCommand, func() (error, error) {
 		return localError, nil
-	}, &ErrorHandlers{Local: func(err error) error {
+	}, &ErrorHandlers{Local: func(err error) (bool, error) {
 		handled <- err
-		return nil
+		return true, nil
 	}})
 
 	// Expect the error to have been handled
@@ -175,8 +199,8 @@ func TestLocalErrorHandlerError(t *testing.T) {
 	handlerError := fmt.Errorf("Handler error")
 	err := service.Run(testCommand, func() (error, error) {
 		return fmt.Errorf("Local error"), nil
-	}, &ErrorHandlers{Local: func(err error) error {
-		return handlerError
+	}, &ErrorHandlers{Local: func(err error) (bool, error) {
+		return false, handlerError
 	}})
 
 	// Expect the handler to have raised an error
@@ -202,6 +226,18 @@ func TestRemoteErrorUnhandled(t *testing.T) {
 	rErr, ok := err.(*RemoteError)
 	assert.True(ok)
 	assert.Equal(remoteError, rErr.Wrapped)
+
+	err = service.Run(testCommand, func() (error, error) {
+		return nil, remoteError
+	}, &ErrorHandlers{Remote: func(err error) (bool, error) {
+		return false, nil
+	}})
+
+	// Expect the unhandled error
+	assert.NotNil(err)
+	rErr, ok = err.(*RemoteError)
+	assert.True(ok)
+	assert.Equal(remoteError, rErr.Wrapped)
 }
 
 // Ensure that remote errors are handled if handler is provided
@@ -214,9 +250,9 @@ func TestRemoteErrorHandled(t *testing.T) {
 	remoteError := fmt.Errorf("Remote error")
 	err := service.Run(testCommand, func() (error, error) {
 		return nil, remoteError
-	}, &ErrorHandlers{Remote: func(err error) error {
+	}, &ErrorHandlers{Remote: func(err error) (bool, error) {
 		handled <- err
-		return nil
+		return true, nil
 	}})
 
 	// Expect the error to have been handled
@@ -241,8 +277,8 @@ func TestRemoteErrorHandlerError(t *testing.T) {
 	handlerError := fmt.Errorf("Handler error")
 	err := service.Run(testCommand, func() (error, error) {
 		return nil, fmt.Errorf("Remote error")
-	}, &ErrorHandlers{Remote: func(err error) error {
-		return handlerError
+	}, &ErrorHandlers{Remote: func(err error) (bool, error) {
+		return false, handlerError
 	}})
 
 	// Expect the handler to have raised an error
@@ -279,6 +315,17 @@ func TestServiceCircuitBreakerErrorUnhandled(t *testing.T) {
 	assert.NotNil(err)
 	_, ok = err.(*ServiceCircuitBreakerOpenError)
 	assert.True(ok)
+
+	err = service.Run(testCommand, func() (error, error) {
+		return nil, nil
+	}, &ErrorHandlers{ServiceCB: func(err error) (bool, error) {
+		return false, nil
+	}})
+
+	// Expect the unhandled error
+	assert.NotNil(err)
+	_, ok = err.(*ServiceCircuitBreakerOpenError)
+	assert.True(ok)
 }
 
 // Ensure that service circuit breaker errors are handled if handler is provided
@@ -303,9 +350,9 @@ func TestServiceCircuitBreakerErrorHandled(t *testing.T) {
 	handled := make(chan error, 1)
 	err = service.Run(testCommand, func() (error, error) {
 		return nil, nil
-	}, &ErrorHandlers{ServiceCB: func(err error) error {
+	}, &ErrorHandlers{ServiceCB: func(err error) (bool, error) {
 		handled <- err
-		return nil
+		return true, nil
 	}})
 
 	// Expect the error to have been handled
@@ -341,8 +388,8 @@ func TestServiceCircuitBreakerErrorHandlerError(t *testing.T) {
 	handlerError := fmt.Errorf("Handler error")
 	err = service.Run(testCommand, func() (error, error) {
 		return nil, nil
-	}, &ErrorHandlers{ServiceCB: func(err error) error {
-		return handlerError
+	}, &ErrorHandlers{ServiceCB: func(err error) (bool, error) {
+		return false, handlerError
 	}})
 
 	// Expect the handler to have raised an error
@@ -379,6 +426,17 @@ func TestCommandCircuitBreakerErrorUnhandled(t *testing.T) {
 	assert.NotNil(err)
 	_, ok = err.(*CommandCircuitBreakerOpenError)
 	assert.True(ok)
+
+	err = service.Run(testCommand, func() (error, error) {
+		return nil, nil
+	}, &ErrorHandlers{CommandCB: func(err error) (bool, error) {
+		return false, nil
+	}})
+
+	// Expect the unhandled error
+	assert.NotNil(err)
+	_, ok = err.(*CommandCircuitBreakerOpenError)
+	assert.True(ok)
 }
 
 // Ensure that command circuit breaker errors are handled if handler is provided
@@ -403,9 +461,9 @@ func TestCommandCircuitBreakerErrorHandled(t *testing.T) {
 	handled := make(chan error, 1)
 	err = service.Run(testCommand, func() (error, error) {
 		return nil, nil
-	}, &ErrorHandlers{CommandCB: func(err error) error {
+	}, &ErrorHandlers{CommandCB: func(err error) (bool, error) {
 		handled <- err
-		return nil
+		return true, nil
 	}})
 
 	// Expect the error to have been handled
@@ -441,8 +499,8 @@ func TestCommandCircuitBreakerErrorHandlerError(t *testing.T) {
 	handlerError := fmt.Errorf("Handler error")
 	err = service.Run(testCommand, func() (error, error) {
 		return nil, nil
-	}, &ErrorHandlers{CommandCB: func(err error) error {
-		return handlerError
+	}, &ErrorHandlers{CommandCB: func(err error) (bool, error) {
+		return false, handlerError
 	}})
 
 	// Expect the handler to have raised an error

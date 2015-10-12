@@ -110,9 +110,9 @@ const (
 
 var (
 	// WarnHandler "handles" errors by logging them as warnings and returning them (doesn't really handle them).
-	WarnHandler = func(err error) error {
+	WarnHandler = func(err error) (handled bool, handlerError error) {
 		log.Warnln(err)
-		return err
+		return false, nil
 	}
 
 	// WarnHandlers is a set of error handlers which log warnings for each kind of error.
@@ -234,7 +234,7 @@ type Command func() (localError, remoteError error)
 
 // ErrorHandler handles an error that was encountered while attempting to run a Command.
 // Returns nil if the handler was able to handle the error. May return new errors that occur within the handler.
-type ErrorHandler func(err error) error
+type ErrorHandler func(err error) (handled bool, handlerError error)
 
 // ErrorHandlers defines a set of error handlers for use while attempting to run a command.
 type ErrorHandlers struct {
@@ -576,12 +576,20 @@ func runHandler(handler ErrorHandler, toHandle error) error {
 		return toHandle
 	}
 
-	if err := handler(toHandle); err != nil {
-		log.WithField("error", err).Debugln("Handler returned error.")
-		return &HandlerError{Input: toHandle, Wrapped: err}
+	handled, handlerError := handler(toHandle)
+	if handlerError != nil {
+		log.WithFields(logrus.Fields{
+			"toHandle":     toHandle,
+			"handlerError": handlerError,
+		}).Debugln("Handler encountered its own error.")
+		return &HandlerError{Input: toHandle, Wrapped: handlerError}
+	}
+	if !handled {
+		log.WithField("error", toHandle).Debugln("Handler unable to handle error.")
+		return toHandle
 	}
 
-	log.Debugln("Error successfully handled")
+	log.WithField("error", toHandle).Debugln("Error successfully handled")
 	return nil
 }
 
