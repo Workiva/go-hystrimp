@@ -57,7 +57,7 @@ func (rs *RemoteSystem) DoFoo() (statusCode int, response string) {
 	atomic.AddInt32(&rs.load, 1)
 
 	// Processing takes time. The RemoteSystem may itself need to talk to other systems.
-	// And of course, the more loaded the system is, the longer it may take
+	// And of course, the more loaded the system is, the longer it may take.
 	rs.simulateRandomDelay(0, int(rs.load))
 
 	// Remote processing done. Returning.
