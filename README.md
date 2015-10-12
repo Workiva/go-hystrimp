@@ -1,5 +1,7 @@
 HYSTRIx iMProved
 ===================
+[![][license img]][license]
+
 Hystrimp is a Go implementation of [Hystrix](https://github.com/Netflix/Hystrix), an innovative project from Netflix.
 
 # What Problem Does It Solve?
@@ -61,3 +63,6 @@ To contribute, do the following:
 
 # Reporting Bugs and Feature Requests
 Bug reports and ideas for improvement are welcome! Please use GitHub's issue tracker.
+
+[license]:LICENSE
+[license img]:https://img.shields.io/badge/License-Apache%202-blue.svg
