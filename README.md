@@ -1,4 +1,4 @@
-HYSTRIx iMProved
+HYSTRix IMProved
 ===================
 [![][license img]][license]
 
