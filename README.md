@@ -1,16 +1,22 @@
-HYSTRIx iMProved
+HYSTRix IMProved
 ===================
+[![][license img]][license]
 [![][travis img]][travis]
 
 [Hystrix](https://github.com/Netflix/Hystrix) is an innovative project from Netflix that aims to make interactions with external dependencies robust. It forces one to answer important questions such as:
 
-*What do I do if I time out before hearing from the remote system?*
+# What Problem Does It Solve?
+Hystrimp/Hystrix provide robustness and resilience in systems with external dependencies, particularly distributed systems (see [this excellent introduction](https://github.com/Netflix/Hystrix/wiki#what-problem-does-hystrix-solve)). Because the reality of distributed systems is complex, one should *never* interact with a remote API as if it were composed of local functions. Instead, one should consider important questions such as:
 
-*What do I do if the remote system returns an error?*
-
-*How much load should I reasonably place on the remote system?*
-
-*If I cannot use the remote system, should I retry my request? How long should I wait before retrying?* 
+* *How long am I willing to wait for the remote system's response?*
+   * *What should I do if I time out before receiving a response?*
+* *What do I do if the remote system responds with an error?*
+* *If a request times out or returns with an error, should I retry it?*
+   * *How many times should I retry the request?*
+   * *How long should I wait before retrying?*
+* *Should I bound the number of parallel requests I make?*
+* *If the remote system is overloaded with requests, is my system part of the problem?*
+   * *How long should my system back off to allow the dependency to recover?* 
 
 Hystrimp provides a Go implementation of these ideas:
 
@@ -25,7 +31,46 @@ It improves upon [hystrix-go](https://github.com/afex/hystrix-go) (similar proje
 * Better ergonomics/interface
 * Simpler implementation
 
+<<<<<<< HEAD
 Ideas for improvement and new features are welcome! Please use GitHub's issue tracker.
 
 [travis]:https://travis-ci.org/Workiva/go-hystrimp
 [travis img]:https://travis-ci.org/Workiva/go-hystrimp.svg?branch=master
+=======
+# Installing
+1. Install [Go](https://golang.org/doc/install)
+2. Install Godep (```go get github.com/tools/godep```)
+2. Run ```godep get github.com/Workiva/go-hystrimp/...```
+
+# Updating
+When new code is available on master, you can update with ```go get -u github.com/Workiva/go-hystrimp/...```
+
+# Testing
+To run unit tests, do
+```
+cd $GOPATH/src/github.com/Workiva/go-hystrimp
+godep go test ./...
+```
+# Running the Example
+```
+godep go build -o hystrimp-example -tags example ./example/main
+./hystrimp-example
+```
+
+# Contributing
+To contribute, do the following:
+
+1. Create a feature branch from master
+2. Implement your contributions
+3. Ensure unit test coverage
+4. Ensure that you've complied with [these guidelines](https://github.com/golang/go/wiki/CodeReviewComments)
+5. [gofmt](https://golang.org/cmd/gofmt/) your code
+6. Commit with good commit messages
+7. Create PR back to master
+
+# Reporting Bugs and Feature Requests
+Bug reports and ideas for improvement are welcome! Please use GitHub's issue tracker.
+
+[license]:LICENSE
+[license img]:https://img.shields.io/badge/License-Apache%202-blue.svg
+>>>>>>> origin/master
