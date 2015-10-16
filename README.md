@@ -3,7 +3,7 @@ HYSTRix IMProved
 [![][license img]][license]
 [![][travis img]][travis]
 
-[Hystrix](https://github.com/Netflix/Hystrix) is an innovative project from Netflix that aims to make interactions with external dependencies robust. It forces one to answer important questions such as:
+Hystrimp is a Go implementation of [Hystrix](https://github.com/Netflix/Hystrix), an innovative project from Netflix.
 
 # What Problem Does It Solve?
 Hystrimp/Hystrix provide robustness and resilience in systems with external dependencies, particularly distributed systems (see [this excellent introduction](https://github.com/Netflix/Hystrix/wiki#what-problem-does-hystrix-solve)). Because the reality of distributed systems is complex, one should *never* interact with a remote API as if it were composed of local functions. Instead, one should consider important questions such as:
@@ -31,12 +31,8 @@ It improves upon [hystrix-go](https://github.com/afex/hystrix-go) (similar proje
 * Better ergonomics/interface
 * Simpler implementation
 
-<<<<<<< HEAD
 Ideas for improvement and new features are welcome! Please use GitHub's issue tracker.
 
-[travis]:https://travis-ci.org/Workiva/go-hystrimp
-[travis img]:https://travis-ci.org/Workiva/go-hystrimp.svg?branch=master
-=======
 # Installing
 1. Install [Go](https://golang.org/doc/install)
 2. Install Godep (```go get github.com/tools/godep```)
@@ -73,4 +69,5 @@ Bug reports and ideas for improvement are welcome! Please use GitHub's issue tra
 
 [license]:LICENSE
 [license img]:https://img.shields.io/badge/License-Apache%202-blue.svg
->>>>>>> origin/master
+[travis]:https://travis-ci.org/Workiva/go-hystrimp
+[travis img]:https://travis-ci.org/Workiva/go-hystrimp.svg?branch=master
