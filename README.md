@@ -1,5 +1,7 @@
 HYSTRIx iMProved
 ===================
+[![][https://travis-ci.org/Workiva/go-hystrimp.svg?branch=master]][https://travis-ci.org/Workiva/go-hystrimp]
+
 [Hystrix](https://github.com/Netflix/Hystrix) is an innovative project from Netflix that aims to make interactions with external dependencies robust. It forces one to answer important questions such as:
 
 *What do I do if I time out before hearing from the remote system?*
