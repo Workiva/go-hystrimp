@@ -31,8 +31,6 @@ It improves upon [hystrix-go](https://github.com/afex/hystrix-go) (similar proje
 * Better ergonomics/interface
 * Simpler implementation
 
-Ideas for improvement and new features are welcome! Please use GitHub's issue tracker.
-
 # Installing
 1. Install [Go](https://golang.org/doc/install)
 2. Install Godep (```go get github.com/tools/godep```)
