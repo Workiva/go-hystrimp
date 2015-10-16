@@ -1,6 +1,6 @@
 HYSTRIx iMProved
 ===================
-[![][https://travis-ci.org/Workiva/go-hystrimp.svg?branch=master]][https://travis-ci.org/Workiva/go-hystrimp]
+[![][travis img]][travis]
 
 [Hystrix](https://github.com/Netflix/Hystrix) is an innovative project from Netflix that aims to make interactions with external dependencies robust. It forces one to answer important questions such as:
 
@@ -26,3 +26,6 @@ It improves upon [hystrix-go](https://github.com/afex/hystrix-go) (similar proje
 * Simpler implementation
 
 Ideas for improvement and new features are welcome! Please use GitHub's issue tracker.
+
+[travis]:https://travis-ci.org/Workiva/go-hystrimp
+[travis img]:https://travis-ci.org/Workiva/go-hystrimp.svg?branch=master
