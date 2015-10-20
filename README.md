@@ -65,6 +65,9 @@ To contribute, do the following:
 # Reporting Bugs and Feature Requests
 Bug reports and ideas for improvement are welcome! Please use GitHub's issue tracker.
 
+# Maintainers
+Tom Deering <[tom.deering@workiva.com](mailto:tom.deering@workiva.com)>
+
 [license]:LICENSE
 [license img]:https://img.shields.io/badge/License-Apache%202-blue.svg
 [travis]:https://travis-ci.org/Workiva/go-hystrimp
